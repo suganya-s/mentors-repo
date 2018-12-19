@@ -128,6 +128,63 @@ def format_active_officers_info(query_comp_name, query_off_info, company_num):
     return company
 
 
+def format_active_officers_info(query_comp_name, query_off_info, company_num):
+    """
+    Format active officer information for one company into dictionary.
+    INPUT:
+    query_company_name: function
+    query_officers_info: function
+    company_num: string
+    OUTPUT:
+    Dictionary with following keys: 'Company_Name',
+    'Company_Registration_Number', 'Number_Active_Officers',
+    'Names_Active_Officers', 'Officers_Active_Full_Info'
+    """
+    company_name = query_comp_name(company_num)
+    officers_data = query_off_info(company_num)
+    if officers_data != 'CRN not listed with Companies House':
+        num_active = int(officers_data["active_count"])
+        # pretty_print(officers_data)
+        # num_total = int(officers_data["total_results"])
+        # print("\nTotal number of officers in company's history: ", num_total)
+        # print("\nNumber of currently active officers: ", num_active)
+
+        active_officer_names = []
+        active_officer_info = []
+
+        active_officers = list(
+            filter(lambda officer: "resigned_on" not in officer, officers_data["items"])
+            )
+        for officer in active_officers:
+            active_officer_names.append(officer["name"])
+            active_officer_info.append(officer)
+            # pretty_print(officer)
+
+        company = {
+            'Company_Name': company_name,
+            'Company_Registration_Number': company_num,
+            'Number_Active_Officers': num_active,
+            'Names_Active_Officers': active_officer_names,
+            'Officers_Active_Full_Info': active_officer_info,
+        }
+    else:
+        company = {}
+        print('{} not registered with Companies House'.format(company_num))
+
+    # pretty_print(company)
+    # Save the dictionary of active officer's information into a file
+
+    # print('\nSaving active officers\' information for {}:{} into file {}.txt ...'
+    #       .format(company_name, company_num, company_num))
+    with open('companies_house_data/' + company_num + '.txt', 'w') as file:
+        json.dump(company, file, indent=4)
+    # return company
+    # print('\nSaving active officers\' information...')
+    # with open('all_officers_information.txt', 'a') as file:
+    #     json.dump(company, file, indent=4)
+    return company
+
+
 
 if __name__ == '__main__':
     format_active_officers_info(query_company_name, query_officers_info, COMPANY_NUM)
